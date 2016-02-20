@@ -18,10 +18,12 @@ import com.wrmsr.junkie.expr.KonstExpr;
 import com.wrmsr.junkie.expr.LetExpr;
 import com.wrmsr.junkie.expr.TupleExpr;
 import com.wrmsr.junkie.expr.VarExpr;
+import com.wrmsr.junkie.konst.BoolKonst;
 import com.wrmsr.junkie.konst.IntKonst;
 import com.wrmsr.junkie.konst.Konst;
 import com.wrmsr.junkie.konst.KonstVisitor;
 import com.wrmsr.junkie.konst.RealKonst;
+import com.wrmsr.junkie.konst.StringKonst;
 
 import java.util.stream.Collectors;
 
@@ -207,7 +209,8 @@ fun eval_binop(b:binop, c1:const, c2:const):const =
                     @Override
                     public Konst visitInt(IntKonst k1, Void context)
                     {
-                        return c2.accept(new KonstVisitor<Void, Konst>() {
+                        return c2.accept(new KonstVisitor<Void, Konst>()
+                        {
                             @Override
                             public Konst visitInt(IntKonst k2, Void context)
                             {
@@ -219,7 +222,8 @@ fun eval_binop(b:binop, c1:const, c2:const):const =
                     @Override
                     public Konst visitReal(RealKonst k1, Void context)
                     {
-                        return c2.accept(new KonstVisitor<Void, Konst>() {
+                        return c2.accept(new KonstVisitor<Void, Konst>()
+                        {
                             @Override
                             public Konst visitReal(RealKonst k2, Void context)
                             {
@@ -233,25 +237,120 @@ fun eval_binop(b:binop, c1:const, c2:const):const =
             @Override
             public Konst visitTimes(TimesBinOp binOp, Void context)
             {
-                return super.visitTimes(binOp, context);
+                return c1.accept(new KonstVisitor<Void, Konst>()
+                {
+                    @Override
+                    public Konst visitInt(IntKonst k1, Void context)
+                    {
+                        return c2.accept(new KonstVisitor<Void, Konst>()
+                        {
+                            @Override
+                            public Konst visitInt(IntKonst k2, Void context)
+                            {
+                                return new IntKonst(k1.getValue() * k2.getValue());
+                            }
+                        }, null);
+                    }
+
+                    @Override
+                    public Konst visitReal(RealKonst k1, Void context)
+                    {
+                        return c2.accept(new KonstVisitor<Void, Konst>()
+                        {
+                            @Override
+                            public Konst visitReal(RealKonst k2, Void context)
+                            {
+                                return new RealKonst(k1.getValue() * k2.getValue());
+                            }
+                        }, null);
+                    }
+                }, null);
             }
 
             @Override
             public Konst visitMinus(MinusBinOp binOp, Void context)
             {
-                return super.visitMinus(binOp, context);
+                return c1.accept(new KonstVisitor<Void, Konst>()
+                {
+                    @Override
+                    public Konst visitInt(IntKonst k1, Void context)
+                    {
+                        return c2.accept(new KonstVisitor<Void, Konst>()
+                        {
+                            @Override
+                            public Konst visitInt(IntKonst k2, Void context)
+                            {
+                                return new IntKonst(k1.getValue() - k2.getValue());
+                            }
+                        }, null);
+                    }
+
+                    @Override
+                    public Konst visitReal(RealKonst k1, Void context)
+                    {
+                        return c2.accept(new KonstVisitor<Void, Konst>()
+                        {
+                            @Override
+                            public Konst visitReal(RealKonst k2, Void context)
+                            {
+                                return new RealKonst(k1.getValue() - k2.getValue());
+                            }
+                        }, null);
+                    }
+                }, null);
             }
 
             @Override
             public Konst visitConcat(ConcatBinOp binOp, Void context)
             {
-                return super.visitConcat(binOp, context);
+                return c1.accept(new KonstVisitor<Void, Konst>()
+                {
+                    @Override
+                    public Konst visitString(StringKonst k1, Void context)
+                    {
+                        return c2.accept(new KonstVisitor<Void, Konst>()
+                        {
+                            @Override
+                            public Konst visitString(StringKonst k2, Void context)
+                            {
+                                return new StringKonst(k1.getValue() + k2.getValue());
+                            }
+                        }, null);
+                    }
+                }, null);
             }
 
             @Override
             public Konst visitLte(LteBinOp binOp, Void context)
             {
-                return super.visitLte(binOp, context);
+                return c1.accept(new KonstVisitor<Void, Konst>()
+                {
+                    @Override
+                    public Konst visitInt(IntKonst k1, Void context)
+                    {
+                        return c2.accept(new KonstVisitor<Void, Konst>()
+                        {
+                            @Override
+                            public Konst visitInt(IntKonst k2, Void context)
+                            {
+                                return new BoolKonst(k1.getValue() <= k2.getValue());
+                            }
+                        }, null);
+                    }
+
+                    @Override
+                    public Konst visitReal(RealKonst k1, Void context)
+                    {
+                        return c2.accept(new KonstVisitor<Void, Konst>()
+                        {
+                            @Override
+                            public Konst visitReal(RealKonst k2, Void context)
+                            {
+                                return new BoolKonst(k1.getValue() <= k2.getValue());
+                            }
+                        }, null);
+                    }
+                }, null);
             }
         }, null);
     }
