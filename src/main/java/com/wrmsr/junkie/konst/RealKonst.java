@@ -13,12 +13,40 @@
  */
 package com.wrmsr.junkie.konst;
 
+import java.util.Objects;
+
 public final class RealKonst
-        extends Konst<Float>
+        extends Konst
 {
-    public RealKonst(Float value)
+    private final float value;
+
+    public RealKonst(float value)
     {
-        super(value);
+        this.value = value;
+    }
+
+    public float getValue()
+    {
+        return value;
+    }
+
+    @Override
+    public boolean equals(Object o)
+    {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        RealKonst realKonst = (RealKonst) o;
+        return Float.compare(realKonst.value, value) == 0;
+    }
+
+    @Override
+    public int hashCode()
+    {
+        return Objects.hash(value);
     }
 
     @Override

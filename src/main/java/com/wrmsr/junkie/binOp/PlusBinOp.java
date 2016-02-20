@@ -16,4 +16,9 @@ package com.wrmsr.junkie.binOp;
 public final class PlusBinOp
         extends BinOp
 {
+    @Override
+    public <C, R> R accept(BinOpVisitor<C, R> visitor, C context)
+    {
+        return visitor.visitPlus(this, context);
+    }
 }

@@ -13,43 +13,8 @@
  */
 package com.wrmsr.junkie.konst;
 
-import static java.util.Objects.requireNonNull;
-
-public abstract class Konst<T>
+public abstract class Konst
 {
-    private final T value;
-
-    public Konst(T value)
-    {
-        this.value = requireNonNull(value);
-    }
-
-    public T getValue()
-    {
-        return value;
-    }
-
-    @Override
-    public boolean equals(Object o)
-    {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-
-        Konst<?> konst = (Konst<?>) o;
-
-        return value != null ? value.equals(konst.value) : konst.value == null;
-    }
-
-    @Override
-    public int hashCode()
-    {
-        return value != null ? value.hashCode() : 0;
-    }
-
     public <C, R> R accept(KonstVisitor<C, R> visitor, C context)
     {
         return visitor.visitKonst(this, context);

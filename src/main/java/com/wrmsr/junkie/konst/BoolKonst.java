@@ -13,12 +13,35 @@
  */
 package com.wrmsr.junkie.konst;
 
+import java.util.Objects;
+
 public final class BoolKonst
-        extends Konst<Boolean>
+        extends Konst
 {
-    public BoolKonst(Boolean value)
+    private final boolean value;
+
+    public BoolKonst(boolean value)
     {
-        super(value);
+        this.value = value;
+    }
+
+    @Override
+    public boolean equals(Object o)
+    {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        BoolKonst boolKonst = (BoolKonst) o;
+        return value == boolKonst.value;
+    }
+
+    @Override
+    public int hashCode()
+    {
+        return Objects.hash(value);
     }
 
     @Override

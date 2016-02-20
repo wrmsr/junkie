@@ -34,5 +34,9 @@ public abstract class BinOp
     {
         return Objects.hash(getClass());
     }
-}
+
+    public <C, R> R accept(BinOpVisitor<C, R> visitor, C context)
+    {
+        return visitor.visitBinOp(this, context);
+    }
 }

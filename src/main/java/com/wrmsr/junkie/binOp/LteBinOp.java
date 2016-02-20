@@ -16,4 +16,9 @@ package com.wrmsr.junkie.binOp;
 public final class LteBinOp
         extends BinOp
 {
+    @Override
+    public <C, R> R accept(BinOpVisitor<C, R> visitor, C context)
+    {
+        return visitor.visitLte(this, context);
+    }
 }

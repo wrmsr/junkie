@@ -13,12 +13,40 @@
  */
 package com.wrmsr.junkie.konst;
 
+import java.util.Objects;
+
 public final class StringKonst
-        extends Konst<String>
+        extends Konst
 {
+    private final String value;
+
     public StringKonst(String value)
     {
-        super(value);
+        this.value = value;
+    }
+
+    public String getValue()
+    {
+        return value;
+    }
+
+    @Override
+    public boolean equals(Object o)
+    {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        StringKonst that = (StringKonst) o;
+        return Objects.equals(value, that.value);
+    }
+
+    @Override
+    public int hashCode()
+    {
+        return Objects.hash(value);
     }
 
     @Override

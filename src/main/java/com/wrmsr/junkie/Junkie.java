@@ -1,5 +1,12 @@
 package com.wrmsr.junkie;
 
+import com.wrmsr.junkie.binOp.BinOp;
+import com.wrmsr.junkie.binOp.BinOpVisitor;
+import com.wrmsr.junkie.binOp.ConcatBinOp;
+import com.wrmsr.junkie.binOp.LteBinOp;
+import com.wrmsr.junkie.binOp.MinusBinOp;
+import com.wrmsr.junkie.binOp.PlusBinOp;
+import com.wrmsr.junkie.binOp.TimesBinOp;
 import com.wrmsr.junkie.expr.AppExpr;
 import com.wrmsr.junkie.expr.BinOpExpr;
 import com.wrmsr.junkie.expr.Expr;
@@ -11,6 +18,10 @@ import com.wrmsr.junkie.expr.KonstExpr;
 import com.wrmsr.junkie.expr.LetExpr;
 import com.wrmsr.junkie.expr.TupleExpr;
 import com.wrmsr.junkie.expr.VarExpr;
+import com.wrmsr.junkie.konst.IntKonst;
+import com.wrmsr.junkie.konst.Konst;
+import com.wrmsr.junkie.konst.KonstVisitor;
+import com.wrmsr.junkie.konst.RealKonst;
 
 import java.util.stream.Collectors;
 
@@ -164,7 +175,83 @@ fun subst(v:exp, x:var, e:exp):exp =
             @Override
             public Expr visitIf(IfExpr expr, Void context)
             {
-                return new IfExpr(subst(v, x, expr.getCondition()) subst(v, x, expr.getThenBody()), subst(v, x, expr.getElseBody()));
+                return new IfExpr(subst(v, x, expr.getCondition()), subst(v, x, expr.getThenBody()), subst(v, x, expr.getElseBody()));
+            }
+        }, null);
+    }
+
+/*
+fun eval_binop(b:binop, c1:const, c2:const):const =
+  case (b, c1, c2) of
+    (Plus, Int i, Int j) => Int(i+j)
+  | (Plus, Real r, Real s) => Real(r+s)
+  | (Times, Int i, Int j) => Int(i*j)
+  | (Times, Real r, Real s) => Real(r*s)
+  | (Minus, Int i, Int j) => Int(i-j)
+  | (Minus, Real r, Real s) => Real(r-s)
+  | (Lte, Int i, Int j) => Bool(i <= j)
+  | (Lte, Real r, Real s) => Bool(r <= s)
+  | (Concat, String s, String t) => String(s^t)
+  | (_,_,_) => raise Eval_Error("type mismatch for binop")
+*/
+
+    public static Konst evalBinOp(BinOp b, Konst c1, Konst c2)
+    {
+        return b.accept(new BinOpVisitor<Void, Konst>()
+        {
+            @Override
+            public Konst visitPlus(PlusBinOp binOp, Void context)
+            {
+                return c1.accept(new KonstVisitor<Void, Konst>()
+                {
+                    @Override
+                    public Konst visitInt(IntKonst k1, Void context)
+                    {
+                        return c2.accept(new KonstVisitor<Void, Konst>() {
+                            @Override
+                            public Konst visitInt(IntKonst k2, Void context)
+                            {
+                                return new IntKonst(k1.getValue() + k2.getValue());
+                            }
+                        }, null);
+                    }
+
+                    @Override
+                    public Konst visitReal(RealKonst k1, Void context)
+                    {
+                        return c2.accept(new KonstVisitor<Void, Konst>() {
+                            @Override
+                            public Konst visitReal(RealKonst k2, Void context)
+                            {
+                                return new RealKonst(k1.getValue() + k2.getValue());
+                            }
+                        }, null);
+                    }
+                }, null);
+            }
+
+            @Override
+            public Konst visitTimes(TimesBinOp binOp, Void context)
+            {
+                return super.visitTimes(binOp, context);
+            }
+
+            @Override
+            public Konst visitMinus(MinusBinOp binOp, Void context)
+            {
+                return super.visitMinus(binOp, context);
+            }
+
+            @Override
+            public Konst visitConcat(ConcatBinOp binOp, Void context)
+            {
+                return super.visitConcat(binOp, context);
+            }
+
+            @Override
+            public Konst visitLte(LteBinOp binOp, Void context)
+            {
+                return super.visitLte(binOp, context);
             }
         }, null);
     }
