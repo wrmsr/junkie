@@ -12,6 +12,8 @@ import com.wrmsr.junkie.expr.LetExpr;
 import com.wrmsr.junkie.expr.TupleExpr;
 import com.wrmsr.junkie.expr.VarExpr;
 
+import java.util.stream.Collectors;
+
 public class Junkie
 {
     public static boolean isValue(Expr expr)
@@ -92,7 +94,7 @@ fun subst(v:exp, x:var, e:exp):exp =
         If(subst(v,x,e1),subst(v,x,e2),subst(v,x,e3))
 */
 
-    public static Expr subst(Expr v, Expr x, Expr e)
+    public static Expr subst(Expr v, Var x, Expr e)
     {
         return e.accept(new ExprVisitor<Void, Expr>()
         {
@@ -111,43 +113,58 @@ fun subst(v:exp, x:var, e:exp):exp =
             @Override
             public Expr visitVar(VarExpr expr, Void context)
             {
-
+                if (x.equals(expr.getVar())) {
+                    return v;
+                }
+                else {
+                    return new VarExpr(expr.getVar());
+                }
             }
 
             @Override
             public Expr visitFn(FnExpr expr, Void context)
             {
-                return super.visitFn(expr, context);
+                if (x.equals(expr.getVar())) {
+                    return new FnExpr(expr.getVar(), expr.getExpr());
+                }
+                else {
+                    return new FnExpr(expr.getVar(), subst(v, x, expr.getExpr()));
+                }
             }
 
             @Override
             public Expr visitApp(AppExpr expr, Void context)
             {
-                return super.visitApp(expr, context);
+                return new AppExpr(subst(v, x, expr.getOuter()), subst(v, x, expr.getInner()));
             }
 
             @Override
             public Expr visitTuple(TupleExpr expr, Void context)
             {
-                return super.visitTuple(expr, context);
+                return new TupleExpr(expr.getExprs().stream().map(e -> subst(v, x, e)).collect(Collectors.toList()));
             }
 
             @Override
             public Expr visitIth(IthExpr expr, Void context)
             {
-                return super.visitIth(expr, context);
+                return new IthExpr(expr.getIndex(), subst(v, x, expr.getExpr()));
             }
 
             @Override
             public Expr visitLet(LetExpr expr, Void context)
             {
-                return super.visitLet(expr, context);
+                if (x.equals(expr.getVar())) {
+                    return new LetExpr(expr.getVar(), subst(v, x, expr.getExpr()), expr.getBody());
+                }
+                else {
+                    return new LetExpr(expr.getVar(), subst(v, x, expr.getExpr()), subst(v, x, expr.getBody()));
+                }
             }
 
             @Override
             public Expr visitIf(IfExpr expr, Void context)
             {
-                return super.visitIf(expr, context);
+                return new IfExpr(subst(v, x, expr.getCondition()) subst(v, x, expr.getThenBody()), subst(v, x, expr.getElseBody()));
             }
         }, null);
     }
