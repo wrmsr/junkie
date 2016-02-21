@@ -416,7 +416,7 @@ fun eval'(e:exp):exp =
 
     public static Expr eval1(Expr e)
     {
-        e.accept(new ExprVisitor<Void, Expr>()
+        return e.accept(new ExprVisitor<Void, Expr>()
         {
             @Override
             public Expr visitKonst(KonstExpr expr, Void context)
@@ -439,7 +439,7 @@ fun eval'(e:exp):exp =
                             @Override
                             public Expr visitKonst(KonstExpr k2, Void context)
                             {
-                                return new KonstExpr(evalBinOp(expr, k1.getKonst(), k2.getKonst()));
+                                return new KonstExpr(evalBinOp(expr.getBinOp(), k1.getKonst(), k2.getKonst()));
                             }
                         }, null);
                     }
@@ -500,13 +500,32 @@ fun eval'(e:exp):exp =
             @Override
             public Expr visitLet(LetExpr expr, Void context)
             {
-                return super.visitLet(expr, context);
+                Expr v1 = eval(expr.getExpr());
+                return eval(substitute(v1, expr.getVar(), expr.getBody()));
             }
 
             @Override
-            public Expr visitIf(IfExpr expr, Void context)
+            public Expr visitIf(IfExpr ie, Void context)
             {
-                return super.visitIf(expr, context);
+                Expr v1 = eval(ie.getCondition());
+                return v1.accept(new ExprVisitor<Void, Expr>() {
+                    @Override
+                    public Expr visitKonst(KonstExpr k, Void context)
+                    {
+                        return k.getKonst().accept(new KonstVisitor<Void, Expr>() {
+                            @Override
+                            public Expr visitBool(BoolKonst konst, Void context)
+                            {
+                                if (konst.getValue()) {
+                                    return eval(ie.getThenBody());
+                                }
+                                else {
+                                    return eval(ie.getElseBody());
+                                }
+                            }
+                        }, null);
+                    }
+                }, null);
             }
         }, null);
     }

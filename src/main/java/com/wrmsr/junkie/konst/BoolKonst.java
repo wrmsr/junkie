@@ -25,6 +25,11 @@ public final class BoolKonst
         this.value = value;
     }
 
+    public boolean getValue()
+    {
+        return value;
+    }
+
     @Override
     public boolean equals(Object o)
     {
