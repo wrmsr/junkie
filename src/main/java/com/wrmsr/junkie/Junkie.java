@@ -183,6 +183,17 @@ fun subst(v:exp, x:var, e:exp):exp =
     }
 
 /*
+fun substitute(v:exp, x:var, e:exp):exp =
+  (print "Substituting "; print_exp v; print " for "; print x; print " in ";
+   print_exp e; print "\n"; pause(); subst(v,x,e))
+*/
+
+    public static Expr substitute(Expr v, Var x, Expr e)
+    {
+        return subst(v, x, e);
+    }
+
+/*
 fun eval_binop(b:binop, c1:const, c2:const):const =
   case (b, c1, c2) of
     (Plus, Int i, Int j) => Int(i+j)
@@ -353,6 +364,173 @@ fun eval_binop(b:binop, c1:const, c2:const):const =
                 }, null);
             }
         }, null);
+    }
+
+/*
+fun eval'(e:exp):exp =
+  case e of
+    Const c => Const c
+  | Binop (e1, b, e2) =>
+      let val v1 = eval e1
+          val v2 = eval e2
+      in
+        case (v1, v2) of
+          (Const c1, Const c2) => Const(eval_binop(b, c1, c2))
+        | _ => raise Eval_Error("bad binop expression")
+      end
+  | Var x => raise Eval_Error("unbound variable "^x)
+  | Fn(x,e1) => Fn(x,e1)
+  | App(e1,e2) =>
+      let val v1 = eval e1
+          val v2 = eval e2
+      in
+        case v1 of
+          Fn(x,e) => eval(substitute(v2, x, e))
+        | _ => raise Eval_Error("attempt to apply a non-function")
+      end
+  | Tuple(es) => Tuple(map eval es)
+  | Ith(i,e) =>
+      let val v = eval e
+      in
+        case v of
+          Tuple(vs) =>
+            if i < 1 orelse i > (length vs) then
+              raise Eval_Error("tuple index out of bounds")
+            else List.nth(vs,i-1)
+        | _ => raise Eval_Error("attempt to project from non-tuple")
+      end
+  | Let(x,e1,e2) =>
+      let val v1 = eval e1
+      in
+        eval(substitute(v1, x, e2))
+      end
+  | If(e1,e2,e3) =>
+      let val v1 = eval e1
+      in
+        case v1 of
+          Const(Bool true) => eval e2
+        | Const(Bool false) => eval e3
+        | _ => raise Eval_Error("attempt to do if on non-bool")
+      end
+*/
+
+    public static Expr eval1(Expr e)
+    {
+        e.accept(new ExprVisitor<Void, Expr>()
+        {
+            @Override
+            public Expr visitKonst(KonstExpr expr, Void context)
+            {
+                return expr;
+            }
+
+            @Override
+            public Expr visitBinOp(BinOpExpr expr, Void context)
+            {
+                Expr v1 = eval(expr.getLeft());
+                Expr v2 = eval(expr.getRight());
+                return v1.accept(new ExprVisitor<Void, Expr>()
+                {
+                    @Override
+                    public Expr visitKonst(KonstExpr k1, Void context)
+                    {
+                        return v2.accept(new ExprVisitor<Void, Expr>()
+                        {
+                            @Override
+                            public Expr visitKonst(KonstExpr k2, Void context)
+                            {
+                                return new KonstExpr(evalBinOp(expr, k1.getKonst(), k2.getKonst()));
+                            }
+                        }, null);
+                    }
+                }, null);
+            }
+
+            @Override
+            public Expr visitVar(VarExpr expr, Void context)
+            {
+                throw new IllegalStateException("Unbound variable: " + expr.getVar().getValue());
+            }
+
+            @Override
+            public Expr visitFn(FnExpr expr, Void context)
+            {
+                return new FnExpr(expr.getVar(), expr.getExpr());
+            }
+
+            @Override
+            public Expr visitApp(AppExpr expr, Void context)
+            {
+                Expr v1 = eval(expr.getOuter());
+                Expr v2 = eval(expr.getInner());
+                return v1.accept(new ExprVisitor<Void, Expr>()
+                {
+                    @Override
+                    public Expr visitFn(FnExpr expr, Void context)
+                    {
+                        return eval(substitute(v2, expr.getVar(), expr.getExpr()));
+                    }
+                }, null);
+            }
+
+            @Override
+            public Expr visitTuple(TupleExpr expr, Void context)
+            {
+                return new TupleExpr(expr.getExprs().stream().map(e -> eval(e)).collect(Collectors.toList()));
+            }
+
+            @Override
+            public Expr visitIth(IthExpr ith, Void context)
+            {
+                Expr v = eval(ith.getExpr());
+                return v.accept(new ExprVisitor<Void, Expr>() {
+                    @Override
+                    public Expr visitTuple(TupleExpr t, Void context)
+                    {
+                        if (ith.getIndex() < 1 || ith.getIndex() > t.getExprs().size()) {
+                            throw new IllegalStateException("Tuple index out of bounds");
+                        }
+                        else {
+                            return t.getExprs().get(ith.getIndex() - 1);
+                        }
+                    }
+                }, null);
+            }
+
+            @Override
+            public Expr visitLet(LetExpr expr, Void context)
+            {
+                return super.visitLet(expr, context);
+            }
+
+            @Override
+            public Expr visitIf(IfExpr expr, Void context)
+            {
+                return super.visitIf(expr, context);
+            }
+        }, null);
+    }
+
+/*
+and eval(e:exp):exp =
+  if is_value e then e else
+    (print "Evaluating: "; print_exp e; print "\n"; pause();
+     let val v = eval'(e)
+     in
+       print "Result of "; print_exp e; print "\n is ";
+       print_exp v; print "\n\n"; v
+     end)
+*/
+
+    public static Expr eval(Expr e)
+    {
+        if (isValue(e)) {
+            return e;
+        }
+        else {
+            Expr v = eval1(e);
+            return v;
+        }
     }
 
     public static void main(String[] args)
