@@ -1,3 +1,6 @@
+/*
+https://www.cs.cornell.edu/courses/cs312/2005sp/lectures/lec17.asp
+*/
 package com.wrmsr.junkie;
 
 import com.wrmsr.junkie.binOp.BinOp;
@@ -554,5 +557,7 @@ and eval(e:exp):exp =
 
     public static void main(String[] args)
     {
+        Expr e1 = new BinOpExpr(new KonstExpr(new IntKonst(300)), new PlusBinOp(), new KonstExpr(new IntKonst(12)));
+        Expr e2 = eval(e1);
     }
 }
