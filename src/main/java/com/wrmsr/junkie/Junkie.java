@@ -558,7 +558,16 @@ and eval(e:exp):exp =
     public static void main(String[] args)
     {
         Expr e1 = new BinOpExpr(new KonstExpr(new IntKonst(300)), new PlusBinOp(), new KonstExpr(new IntKonst(12)));
-        Expr e2 = eval(e1);
+        Expr e1_ = eval(e1);
         assert ((IntKonst) ((KonstExpr) e1).getKonst()).getValue() == 312;
+
+        Expr e2 = new FnExpr(new Var("x"), new BinOpExpr(new VarExpr(new Var("x")), new PlusBinOp(), new KonstExpr(new IntKonst(1))));
+        Expr e2_ = eval(e1);
+
+        // e1 = new AppExpr(new FnExpr("f", new AppExpr(new VarExpr("f", new AppExpr(new VarExpr("f", new KonstExpr(new IntKonst(3)))), e7)
+        Expr e3 = new AppExpr(e2, e1);
+        Expr e3_ = eval(e3);
+
+        System.out.println();
     }
 }

@@ -13,6 +13,8 @@
  */
 package com.wrmsr.junkie;
 
+import java.util.Objects;
+
 import static java.util.Objects.requireNonNull;
 
 public final class Var
@@ -27,5 +29,24 @@ public final class Var
     public String getValue()
     {
         return value;
+    }
+
+    @Override
+    public boolean equals(Object o)
+    {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        Var var = (Var) o;
+        return Objects.equals(value, var.value);
+    }
+
+    @Override
+    public int hashCode()
+    {
+        return Objects.hash(value);
     }
 }
