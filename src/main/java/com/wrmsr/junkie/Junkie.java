@@ -559,5 +559,6 @@ and eval(e:exp):exp =
     {
         Expr e1 = new BinOpExpr(new KonstExpr(new IntKonst(300)), new PlusBinOp(), new KonstExpr(new IntKonst(12)));
         Expr e2 = eval(e1);
+        assert ((IntKonst) ((KonstExpr) e1).getKonst()).getValue() == 312;
     }
 }
